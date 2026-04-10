@@ -1,17 +1,52 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from 'next/link';
 
 export default function Home() {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
+  const [originalQuestion, setOriginalQuestion] = useState("");
+
+
+// Add this BEFORE handleSubmit function
+const [isClient, setIsClient] = useState(false);
+
+useEffect(() => {
+  setIsClient(true);
+}, []);
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!question.trim()) return;
 
+// THEN in handleSubmit, wrap localStorage:
+// if (isClient) {
+//   const count = parseInt(localStorage.getItem('askbizai_usage') || '0');
+//   if (count >= 3) {
+//     setAnswer('Free tier: 3 asks/day. Upgrade to Pro for unlimited!');
+//     setLoading(false);
+//     return;
+//   }
+//   localStorage.setItem('askbizai_usage', (count + 1).toString());
+// }
+
+// Re-enable after 10 users (currently commented out)
+if (isClient) {
+  const count = parseInt(localStorage.getItem('askbizai_usage') || '0');
+  if (count >= 3) {
+    setAnswer('🔒 Free: 3 asks/day. Pro: Unlimited + saved history for ₹99/month!\n\nText "PRO" to upgrade.');
+    return;
+  }
+}
+
+  if (!originalQuestion && !question.startsWith('Follow up')) {
+    setOriginalQuestion(question);
+  }
     setLoading(true);
     try {
       const res = await fetch("/api/ask", {
@@ -110,7 +145,7 @@ export default function Home() {
           </form>
 
           {/* Answer + Follow-up buttons */}
-          {answer && (
+          {/* {answer && (
             <div className="mt-8 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-6 border border-gray-100">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -120,7 +155,6 @@ export default function Home() {
               </div>
               <p className="text-gray-700 leading-relaxed whitespace-pre-line mb-6">{answer}</p>
               
-              {/* Interactive buttons */}
               <div className="flex flex-wrap gap-3">
                 <button 
                   onClick={() => setQuestion(`Follow up on "${question}": `)}
@@ -139,13 +173,55 @@ export default function Home() {
                 </button>
               </div>
             </div>
-          )}
+          )} */}
+
+{answer && (
+  <div className="mt-8 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-6 border border-gray-100">
+    <div className="flex items-center gap-2 mb-4">
+      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+      <h2 className="text-xl font-semibold text-gray-800">Your 3‑step plan:</h2>
+    </div>
+    <p className="text-gray-700 leading-relaxed whitespace-pre-line mb-6">{answer}</p>
+    
+    {/* Buttons - always show when answer exists */}
+<div className="flex flex-wrap gap-3">
+  <button 
+    onClick={() => {
+      if (!question.startsWith('Follow up') && originalQuestion) {
+        setQuestion(`More details on "${originalQuestion}": `);
+      } else {
+        setQuestion(`Tell me more about: `);
+      }
+      setAnswer(""); 
+    }}
+    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-all shadow-sm hover:shadow-md"
+  >
+    ➕ Ask follow-up
+  </button>
+  <button 
+    onClick={() => {
+      const text = `My 3-step business plan:\n\n${answer}`;
+      navigator.clipboard.writeText(text);
+    }}
+    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-all shadow-sm hover:shadow-md"
+  >
+    📋 Copy plan
+  </button>
+</div>
+  </div>
+)}
+
         </div>
 
         {/* Footer */}
-        <footer className="text-center mt-12 text-sm text-gray-500">
-          <p>AskBizAI – Free AI business advisor built for small businesses worldwide.</p>
-        </footer>
+<footer className="text-center mt-12 text-sm text-gray-500">
+  <p>
+    AskBizAI – Free AI business advisor.{' '}
+    <Link href="/pro" className="text-blue-600 hover:underline font-medium">
+      🚀 Upgrade to Pro
+    </Link>
+  </p>
+</footer>
       </div>
     </div>
   );
