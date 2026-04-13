@@ -42,7 +42,7 @@ export default function Pro() {
 
       // 2. Razorpay options with proper types
       const options: RazorpayOptions = {
-        key: 'rzp_test_YOUR_KEY_HERE', // Replace with your Razorpay test key
+        key: 'rzp_live_SboTnqXkROV8Km', // Replace with your Razorpay test key
         amount: 9900, // ₹99 * 100 paise
         currency: 'INR',
         name: 'AskBizAI Pro',
